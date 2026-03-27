@@ -130,9 +130,24 @@
         align-items: end;
         margin-bottom: 18px;
       }
+      
+      /* NEW: Advanced options row */
+      .advanced-row {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+      
       @media (max-width: 640px) {
         .field-row {
           grid-template-columns: 1fr;
+        }
+        .advanced-row {
+          flex-direction: column;
+          align-items: stretch;
         }
         header {
           padding: 20px;
@@ -155,7 +170,8 @@
         color: var(--muted);
       }
       .field input,
-      .field textarea {
+      .field textarea,
+      .field select {
         background: var(--surface2);
         border: 1px solid var(--border2);
         border-radius: var(--radius);
@@ -167,17 +183,34 @@
         transition: border-color 0.15s;
         width: 100%;
       }
+      .field select {
+        cursor: pointer;
+      }
+      .field select option {
+        background: var(--surface2);
+      }
       .field textarea {
         min-height: 100px;
         resize: vertical;
       }
       .field input:focus,
-      .field textarea:focus {
+      .field textarea:focus,
+      .field select:focus {
         border-color: var(--accent);
       }
       .field input::placeholder,
       .field textarea::placeholder {
         color: var(--muted2);
+      }
+      
+      .field-small {
+        width: 180px;
+      }
+      
+      .field-hint {
+        font-size: 11px;
+        color: var(--muted2);
+        margin-top: 2px;
       }
 
       .btn-search {
@@ -310,7 +343,7 @@
         border-color: var(--ooma-light);
       }
 
-      /* NEW: Selection Bar */
+      /* Selection Bar */
       .selection-bar {
         background: rgba(107, 70, 193, 0.1);
         border: 1px solid rgba(107, 70, 193, 0.25);
@@ -588,6 +621,11 @@
       .loading-state p {
         color: var(--muted);
         font-size: 15px;
+      }
+      .loading-state .progress {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--accent2);
       }
 
       .empty-state {
@@ -903,7 +941,21 @@
           </button>
         </div>
 
-        <div style="display: flex; justify-content: flex-end">
+        <!-- NEW: Advanced Options -->
+        <div class="advanced-row">
+          <div class="field field-small">
+            <label>Results</label>
+            <select id="pageCount">
+              <option value="1">~20 results (Fast)</option>
+              <option value="2">~40 results</option>
+              <option value="3" selected>~60 results (Recommended)</option>
+              <option value="4">~80 results</option>
+              <option value="5">~100 results (Max)</option>
+            </select>
+          </div>
+          <div class="field-hint" style="flex: 1;">
+            💡 More results = longer search time. Google Maps shows businesses Yelp might miss!
+          </div>
           <button
             class="btn-search"
             onclick="loadDemo()"
@@ -978,7 +1030,7 @@
         </div>
       </div>
 
-      <!-- NEW: Selection Bar -->
+      <!-- Selection Bar -->
       <div class="selection-bar hidden" id="selectionBar">
         <div class="selection-info">
           <span class="selection-count"><span id="selectedCount">0</span> selected</span>
@@ -996,6 +1048,7 @@
       <div id="loadingState" class="loading-state" style="display: none">
         <div class="spinner"></div>
         <p>Searching Google Maps…</p>
+        <p class="progress" id="searchProgress"></p>
       </div>
 
       <div id="emptyState" class="empty-state">
@@ -1250,7 +1303,7 @@
         if (card) card.classList.toggle("selected", checked);
       }
 
-      // NEW: Select All Functions
+      // Select All Functions
       function selectAll() {
         allResults.forEach((biz, index) => {
           if (biz.phone || biz.extracted_phone) {
@@ -1289,15 +1342,10 @@
           selectionBar.classList.add("hidden");
         }
         
-        // Update select all checkbox state
         const selectAllCheckbox = document.getElementById("selectAllCheckbox");
         const businessesWithPhones = allResults.filter((b) => b.phone || b.extracted_phone).length;
         selectAllCheckbox.checked = count === businessesWithPhones && count > 0;
         selectAllCheckbox.indeterminate = count > 0 && count < businessesWithPhones;
-      }
-
-      function updateSMSCount() {
-        updateSelectionUI();
       }
 
       function showResults(data) {
@@ -1350,6 +1398,8 @@
       async function doSearch() {
         const query = document.getElementById("query").value.trim();
         const location = document.getElementById("location").value.trim();
+        const pages = document.getElementById("pageCount").value;
+        
         if (!query || !location) {
           showError("Please enter both Service Type and Location.");
           return;
@@ -1363,11 +1413,16 @@
         document.getElementById("selectionBar").classList.add("hidden");
         document.getElementById("searchBtn").disabled = true;
 
+        // Show progress
+        const progressEl = document.getElementById("searchProgress");
+        progressEl.textContent = `Fetching ${pages} page${pages > 1 ? 's' : ''} of results...`;
+
         try {
-          const params = new URLSearchParams({ q: query, location: location });
+          const params = new URLSearchParams({ q: query, location: location, pages: pages });
           const apiUrl = API_BASE_URL
             ? `${API_BASE_URL}/search?${params}`
             : `/search?${params}`;
+          
           const response = await fetch(apiUrl);
           if (!response.ok)
             throw new Error(`Server returned ${response.status}`);
@@ -1376,12 +1431,24 @@
             showError(`Error: ${data.error}`);
             return;
           }
+          
           const results = data.local_results || [];
+          
           if (results.length === 0) {
             showError("No results found. Try a different location or service.");
             return;
           }
+          
+          // Show how many pages were actually fetched
+          if (data.pages_fetched) {
+            progressEl.textContent = `Fetched ${data.pages_fetched} page${data.pages_fetched > 1 ? 's' : ''}, found ${results.length} businesses`;
+          }
+          
           showResults(results);
+          
+          // Show success toast with count
+          showToast(`Found ${results.length} businesses!`, "success");
+          
         } catch (err) {
           console.error(err);
           showError("Could not connect to backend. Please check your server.");

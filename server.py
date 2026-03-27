@@ -22,9 +22,85 @@ def serve_index():
 def serve_static(path):
     return send_from_directory('.', path)
 
-# API endpoint for search
+# API endpoint for search WITH PAGINATION
 @app.route('/search', methods=['GET'])
 def search_google_maps():
+    query = request.args.get('q')
+    location = request.args.get('location', '')
+    pages = request.args.get('pages', 3)  # Number of pages to fetch (default: 3)
+    
+    # Try to convert pages to int, default to 3 if invalid
+    try:
+        pages = int(pages)
+        pages = min(pages, 5)  # Limit to 5 pages max to avoid rate limits
+    except:
+        pages = 3
+
+    if not query:
+        return jsonify({"error": "Missing query parameter"}), 400
+
+    if not API_KEY:
+        return jsonify({"error": "SERPAPI_KEY environment variable not set"}), 500
+
+    search_query = f"{query} {location}".strip()
+    
+    all_results = []
+    
+    # Fetch multiple pages of results
+    for page in range(pages):
+        # Calculate start position (0, 20, 40, 60, ...)
+        start = page * 20
+        
+        url = "https://serpapi.com/search.json"
+        params = {
+            "engine": "google_maps",
+            "type": "search",
+            "q": search_query,
+            "api_key": API_KEY,
+            "hl": "en",
+            "start": start  # Pagination offset
+        }
+
+        try:
+            response = requests.get(url, params=params, timeout=30)
+            data = response.json()
+
+            if "error" in data:
+                # If error on first page, return error
+                if page == 0:
+                    return jsonify({"error": data["error"]}), 400
+                # Otherwise, stop fetching more pages
+                break
+
+            results = data.get("local_results", [])
+            
+            # If no results on this page, stop
+            if not results:
+                break
+                
+            all_results.extend(results)
+            
+            # If less than 20 results, no more pages available
+            if len(results) < 20:
+                break
+
+        except Exception as e:
+            # If error on first page, return error
+            if page == 0:
+                return jsonify({"error": f"Server error: {str(e)}"}), 500
+            # Otherwise, stop fetching more pages
+            break
+
+    return jsonify({
+        "local_results": all_results,
+        "total": len(all_results),
+        "pages_fetched": min(page + 1, pages)
+    })
+
+
+# API endpoint for single page search (faster)
+@app.route('/search-single', methods=['GET'])
+def search_single_page():
     query = request.args.get('q')
     location = request.args.get('location', '')
 
@@ -62,16 +138,10 @@ def search_google_maps():
 # Generate Ooma-specific links
 @app.route('/ooma-links', methods=['POST'])
 def generate_ooma_links():
-    """
-    Generate links that open Ooma specifically
-    - Desktop: Opens Ooma web portal or desktop app
-    - Mobile: Opens Ooma mobile app
-    """
     data = request.get_json()
-    
     phones = data.get('phones', [])
     message = data.get('message', '')
-    device = data.get('device', 'desktop')  # 'desktop' or 'mobile'
+    device = data.get('device', 'desktop')
     
     if not phones:
         return jsonify({"error": "No phone numbers provided"}), 400
@@ -79,33 +149,22 @@ def generate_ooma_links():
     links = []
     
     for phone in phones:
-        # Clean phone number
         clean_phone = ''.join(filter(str.isdigit, phone))
         if len(clean_phone) == 10:
             clean_phone = f"1{clean_phone}"
         
         if device == 'desktop':
-            # Desktop options:
-            # Option 1: Ooma desktop app custom URL scheme (try this first)
             desktop_app_link = f"ooma://sms?to=%2B{clean_phone}&body={requests.utils.quote(message)}"
-            
-            # Option 2: Ooma web portal (direct SMS compose page)
-            # Note: You may need to be logged into Ooma portal
             web_portal_link = f"https://office.ooma.com/app/dialer/sms?to=%2B{clean_phone}&body={requests.utils.quote(message)}"
-            
             links.append({
                 "phone": phone,
                 "desktop_app": desktop_app_link,
                 "web_portal": web_portal_link,
-                "recommended": web_portal_link  # More reliable
+                "recommended": web_portal_link
             })
         else:
-            # Mobile: Standard SMS link (opens Ooma if it's your SMS app)
-            # Or use Ooma's custom URL scheme for mobile
             mobile_link = f"ooma://sms?to=%2B{clean_phone}&body={requests.utils.quote(message)}"
-            # Fallback to standard SMS
             standard_sms = f"sms:%2B{clean_phone}?body={requests.utils.quote(message)}"
-            
             links.append({
                 "phone": phone,
                 "ooma_app": mobile_link,
@@ -120,15 +179,10 @@ def generate_ooma_links():
     })
 
 
-# Batch SMS preparation - returns all data for sending
+# Batch SMS preparation
 @app.route('/prepare-batch-sms', methods=['POST'])
 def prepare_batch_sms():
-    """
-    Prepare batch SMS data
-    Returns formatted data for copy-paste or API use
-    """
     data = request.get_json()
-    
     phones = data.get('phones', [])
     message = data.get('message', '')
     business_names = data.get('business_names', [])
@@ -136,7 +190,6 @@ def prepare_batch_sms():
     if not phones:
         return jsonify({"error": "No phone numbers provided"}), 400
     
-    # Format phone numbers
     formatted = []
     for i, phone in enumerate(phones):
         clean_phone = ''.join(filter(str.isdigit, phone))
@@ -149,7 +202,6 @@ def prepare_batch_sms():
             "business": business_names[i] if i < len(business_names) else "Unknown"
         })
     
-    # Generate copy-paste formats
     comma_separated = ", ".join([f['formatted'] for f in formatted])
     newline_separated = "\n".join([f['formatted'] for f in formatted])
     
@@ -166,7 +218,7 @@ def prepare_batch_sms():
 
 
 if __name__ == '__main__':
-    print("🚀 CrewFinder with Ooma Integration!")
+    print("🚀 CrewFinder with Ooma Integration + Pagination!")
     print("→ Local: http://127.0.0.1:5000")
     print("→ Your Ooma Number: (330) 443-7800")
     print("→ Ooma Portal: https://office.ooma.com")
