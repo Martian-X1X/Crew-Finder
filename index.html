@@ -310,6 +310,73 @@
         border-color: var(--ooma-light);
       }
 
+      /* NEW: Selection Bar */
+      .selection-bar {
+        background: rgba(107, 70, 193, 0.1);
+        border: 1px solid rgba(107, 70, 193, 0.25);
+        border-radius: var(--radius);
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+      .selection-bar.hidden {
+        display: none;
+      }
+      .selection-info {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .selection-count {
+        color: var(--ooma-light);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .select-all-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .select-all-checkbox input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--ooma);
+      }
+      .select-all-checkbox:hover {
+        color: var(--text);
+      }
+      .selection-actions {
+        display: flex;
+        gap: 8px;
+      }
+      .btn-select-all,
+      .btn-deselect-all {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: "DM Sans", sans-serif;
+      }
+      .btn-select-all:hover {
+        border-color: var(--ooma);
+        color: var(--ooma-light);
+      }
+      .btn-deselect-all:hover {
+        border-color: var(--danger);
+        color: var(--danger);
+      }
+
       .results-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -632,6 +699,7 @@
       .phone-item input[type="checkbox"] {
         width: 18px;
         height: 18px;
+        accent-color: var(--ooma);
       }
       .phone-item .biz-name {
         flex: 1;
@@ -910,6 +978,21 @@
         </div>
       </div>
 
+      <!-- NEW: Selection Bar -->
+      <div class="selection-bar hidden" id="selectionBar">
+        <div class="selection-info">
+          <span class="selection-count"><span id="selectedCount">0</span> selected</span>
+          <label class="select-all-checkbox">
+            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)" />
+            <span>Select All</span>
+          </label>
+        </div>
+        <div class="selection-actions">
+          <button class="btn-select-all" onclick="selectAll()">Select All</button>
+          <button class="btn-deselect-all" onclick="deselectAll()">Clear Selection</button>
+        </div>
+      </div>
+
       <div id="loadingState" class="loading-state" style="display: none">
         <div class="spinner"></div>
         <p>Searching Google Maps…</p>
@@ -1162,14 +1245,59 @@
       function toggleBusiness(index, checked) {
         if (checked) selectedBusinesses.add(index);
         else selectedBusinesses.delete(index);
-        updateSMSCount();
+        updateSelectionUI();
         const card = document.querySelector(`.biz-card[data-index="${index}"]`);
         if (card) card.classList.toggle("selected", checked);
       }
 
+      // NEW: Select All Functions
+      function selectAll() {
+        allResults.forEach((biz, index) => {
+          if (biz.phone || biz.extracted_phone) {
+            selectedBusinesses.add(index);
+          }
+        });
+        applyFilter(currentFilter);
+        updateSelectionUI();
+        showToast(`Selected ${selectedBusinesses.size} businesses with phone numbers`, "success");
+      }
+
+      function deselectAll() {
+        selectedBusinesses.clear();
+        applyFilter(currentFilter);
+        updateSelectionUI();
+        showToast("Selection cleared", "success");
+      }
+
+      function toggleSelectAll(checked) {
+        if (checked) {
+          selectAll();
+        } else {
+          deselectAll();
+        }
+      }
+
+      function updateSelectionUI() {
+        const count = selectedBusinesses.size;
+        document.getElementById("smsCount").textContent = count;
+        document.getElementById("selectedCount").textContent = count;
+        
+        const selectionBar = document.getElementById("selectionBar");
+        if (allResults.length > 0) {
+          selectionBar.classList.remove("hidden");
+        } else {
+          selectionBar.classList.add("hidden");
+        }
+        
+        // Update select all checkbox state
+        const selectAllCheckbox = document.getElementById("selectAllCheckbox");
+        const businessesWithPhones = allResults.filter((b) => b.phone || b.extracted_phone).length;
+        selectAllCheckbox.checked = count === businessesWithPhones && count > 0;
+        selectAllCheckbox.indeterminate = count > 0 && count < businessesWithPhones;
+      }
+
       function updateSMSCount() {
-        document.getElementById("smsCount").textContent =
-          selectedBusinesses.size;
+        updateSelectionUI();
       }
 
       function showResults(data) {
@@ -1178,7 +1306,7 @@
         document.getElementById("filterRow").style.display = "flex";
         document.getElementById("statusBar").style.display = "flex";
         document.getElementById("emptyState").style.display = "none";
-        updateSMSCount();
+        updateSelectionUI();
         applyFilter(currentFilter);
       }
 
@@ -1232,6 +1360,7 @@
         document.getElementById("resultsGrid").innerHTML = "";
         document.getElementById("statusBar").style.display = "none";
         document.getElementById("filterRow").style.display = "none";
+        document.getElementById("selectionBar").classList.add("hidden");
         document.getElementById("searchBtn").disabled = true;
 
         try {
