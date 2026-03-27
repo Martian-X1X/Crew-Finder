@@ -1,11 +1,14 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CrewFinder — Local Business Search</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
-  <style>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CrewFinder — Local Business Search with Ooma SMS</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
       :root {
         --bg: #0d0d0f;
         --surface: #17171a;
@@ -14,11 +17,17 @@
         --border2: rgba(255, 255, 255, 0.13);
         --accent: #e8ff47;
         --accent2: #47ffe8;
+        --accent3: #1a56db;
+        --ooma: #6b46c1;
+        --ooma-light: #9f7aea;
         --text: #f0f0f0;
         --muted: #888;
         --muted2: #555;
         --radius: 12px;
         --radius-lg: 18px;
+        --success: #47ffe8;
+        --warning: #ffc107;
+        --danger: #ff6b6b;
       }
       * {
         box-sizing: border-box;
@@ -36,8 +45,13 @@
         padding: 28px 40px;
         display: flex;
         align-items: center;
-        gap: 12px;
+        justify-content: space-between;
         border-bottom: 1px solid var(--border);
+      }
+      .logo-section {
+        display: flex;
+        align-items: center;
+        gap: 12px;
       }
       .logo-mark {
         width: 36px;
@@ -60,6 +74,17 @@
       }
       .logo-text span {
         color: var(--accent);
+      }
+      .ooma-badge {
+        background: linear-gradient(135deg, var(--ooma), var(--ooma-light));
+        color: white;
+        padding: 6px 14px;
+        border-radius: 100px;
+        font-size: 12px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
       }
 
       main {
@@ -88,32 +113,6 @@
         color: var(--muted);
         font-size: 17px;
         font-weight: 300;
-      }
-
-      .api-banner {
-        background: rgba(232, 255, 71, 0.06);
-        border: 1px solid rgba(232, 255, 71, 0.2);
-        border-radius: var(--radius);
-        padding: 14px 18px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 32px;
-        font-size: 14px;
-      }
-      .api-banner .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
-        background: var(--accent);
-        flex-shrink: 0;
-      }
-      .api-banner a {
-        color: var(--accent);
-        text-decoration: none;
-      }
-      .api-banner a:hover {
-        text-decoration: underline;
       }
 
       .search-card {
@@ -156,7 +155,7 @@
         color: var(--muted);
       }
       .field input,
-      .field select {
+      .field textarea {
         background: var(--surface2);
         border: 1px solid var(--border2);
         border-radius: var(--radius);
@@ -168,15 +167,17 @@
         transition: border-color 0.15s;
         width: 100%;
       }
+      .field textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
       .field input:focus,
-      .field select:focus {
+      .field textarea:focus {
         border-color: var(--accent);
       }
-      .field input::placeholder {
+      .field input::placeholder,
+      .field textarea::placeholder {
         color: var(--muted2);
-      }
-      .field select option {
-        background: #1f1f23;
       }
 
       .btn-search {
@@ -206,6 +207,31 @@
       .btn-search:disabled {
         opacity: 0.4;
         cursor: not-allowed;
+      }
+
+      .btn-ooma {
+        background: linear-gradient(135deg, var(--ooma), var(--ooma-light));
+        color: white;
+        border: none;
+        border-radius: var(--radius);
+        padding: 13px 28px;
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-ooma:hover {
+        opacity: 0.88;
+      }
+      .btn-ooma:active {
+        transform: scale(0.97);
       }
 
       .filters-row {
@@ -239,6 +265,8 @@
         justify-content: space-between;
         margin-bottom: 20px;
         min-height: 28px;
+        flex-wrap: wrap;
+        gap: 12px;
       }
       .result-count {
         font-size: 14px;
@@ -248,7 +276,14 @@
         color: var(--text);
       }
 
-      .export-btn {
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .export-btn,
+      .sms-btn {
         background: transparent;
         border: 1px solid var(--border2);
         border-radius: var(--radius);
@@ -265,6 +300,14 @@
       .export-btn:hover {
         border-color: var(--accent2);
         color: var(--accent2);
+      }
+      .sms-btn {
+        border-color: rgba(107, 70, 193, 0.3);
+        color: var(--ooma-light);
+      }
+      .sms-btn:hover {
+        background: rgba(107, 70, 193, 0.1);
+        border-color: var(--ooma-light);
       }
 
       .results-grid {
@@ -288,18 +331,18 @@
         border-color: var(--border2);
         transform: translateY(-2px);
       }
-      .biz-card::before {
+      .biz-card.selected {
+        border-color: var(--ooma);
+        box-shadow: 0 0 20px rgba(107, 70, 193, 0.15);
+      }
+      .biz-card.selected::before {
         content: "";
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         height: 2px;
-        background: linear-gradient(90deg, var(--accent), var(--accent2));
-        opacity: 0;
-        transition: opacity 0.2s;
-      }
-      .biz-card:hover::before {
+        background: linear-gradient(90deg, var(--ooma), var(--ooma-light));
         opacity: 1;
       }
 
@@ -308,6 +351,31 @@
         align-items: flex-start;
         gap: 12px;
         margin-bottom: 14px;
+      }
+      .biz-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--border2);
+        border-radius: 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-top: 10px;
+        appearance: none;
+        -webkit-appearance: none;
+        background: var(--surface2);
+        transition: all 0.15s;
+      }
+      .biz-checkbox:checked {
+        background: var(--ooma);
+        border-color: var(--ooma);
+      }
+      .biz-checkbox:checked::after {
+        content: "✓";
+        display: block;
+        text-align: center;
+        color: white;
+        font-size: 12px;
+        line-height: 16px;
       }
       .biz-icon {
         width: 42px;
@@ -487,49 +555,250 @@
         margin-bottom: 20px;
       }
 
-      .demo-notice {
-        background: rgba(71, 255, 232, 0.05);
-        border: 1px solid rgba(71, 255, 232, 0.15);
+      /* Ooma SMS Modal */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        display: none;
+      }
+      .modal-overlay.active {
+        display: flex;
+      }
+      .modal {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        max-width: 650px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+      .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 24px;
+      }
+      .modal-title {
+        font-family: "Syne", sans-serif;
+        font-size: 22px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .modal-close {
+        background: none;
+        border: none;
+        color: var(--muted);
+        font-size: 24px;
+        cursor: pointer;
+        padding: 4px 8px;
+      }
+      .modal-close:hover {
+        color: var(--text);
+      }
+
+      .phone-list {
+        background: var(--surface2);
+        border: 1px solid var(--border);
         border-radius: var(--radius);
-        padding: 12px 16px;
-        font-size: 13px;
-        color: var(--accent2);
+        padding: 16px;
         margin-bottom: 20px;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+      .phone-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .phone-item:last-child {
+        border-bottom: none;
+      }
+      .phone-item input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+      }
+      .phone-item .biz-name {
+        flex: 1;
+        font-size: 13px;
+      }
+      .phone-item .phone-num {
+        font-family: monospace;
+        color: var(--ooma-light);
+      }
+
+      .char-count {
+        text-align: right;
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 4px;
+      }
+      .char-count.warning {
+        color: var(--warning);
+      }
+      .char-count.danger {
+        color: var(--danger);
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 24px;
+      }
+      .modal-actions .btn-ooma {
+        flex: 1;
+        justify-content: center;
+      }
+      .btn-cancel {
+        flex: 1;
+        background: var(--surface2);
+        color: var(--muted);
+        border: 1px solid var(--border2);
+        border-radius: var(--radius);
+        padding: 13px 28px;
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .btn-cancel:hover {
+        color: var(--text);
+        border-color: var(--text);
+      }
+
+      .send-options {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .send-option {
+        background: var(--surface2);
+        border: 2px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-align: center;
+      }
+      .send-option:hover {
+        border-color: var(--border2);
+      }
+      .send-option.selected {
+        border-color: var(--ooma);
+        background: rgba(107, 70, 193, 0.08);
+      }
+      .send-option .icon {
+        font-size: 24px;
+        margin-bottom: 8px;
+      }
+      .send-option .name {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .send-option .desc {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .info-box {
+        background: rgba(107, 70, 193, 0.1);
+        border: 1px solid rgba(107, 70, 193, 0.2);
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        margin-bottom: 20px;
+        font-size: 13px;
+        color: var(--ooma-light);
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        z-index: 2000;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s;
+      }
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .toast.success {
+        border-color: var(--success);
+      }
+      .toast.error {
+        border-color: var(--danger);
+      }
+
+      .quick-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+      }
+      .quick-action {
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 100px;
+        padding: 6px 14px;
+        font-size: 12px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .quick-action:hover {
+        border-color: var(--ooma);
+        color: var(--ooma-light);
       }
     </style>
   </head>
   <body>
     <header>
-      <div class="logo-mark">
-        <svg viewBox="0 0 20 20" fill="none">
-          <circle cx="10" cy="10" r="4" fill="#0d0d0f" />
-          <path
-            d="M10 2v3M10 15v3M2 10h3M15 10h3"
-            stroke="#0d0d0f"
-            stroke-width="2"
-            stroke-linecap="round"
-          />
-        </svg>
+      <div class="logo-section">
+        <div class="logo-mark">
+          <svg viewBox="0 0 20 20" fill="none">
+            <circle cx="10" cy="10" r="4" fill="#0d0d0f" />
+            <path
+              d="M10 2v3M10 15v3M2 10h3M15 10h3"
+              stroke="#0d0d0f"
+              stroke-width="2"
+              stroke-linecap="round"
+            />
+          </svg>
+        </div>
+        <div class="logo-text">Crew<span>Finder</span></div>
       </div>
-      <div class="logo-text">Crew<span>Finder</span></div>
+      <div class="ooma-badge"><span>📞</span> Ooma (330) 443-7800</div>
     </header>
 
     <main>
       <div class="hero">
         <h1>Find local <em>crews</em><br />in any area</h1>
-        <p>
-          Search Google Maps business data via SerpApi — phone, address, hours &
-          more.
-        </p>
-      </div>
-
-      <div class="api-banner">
-        <div class="dot"></div>
-        <span
-          >Powered by SerpApi. Get your free API key at
-          <a href="https://serpapi.com" target="_blank">serpapi.com</a> (100
-          free searches/month, no credit card).</span
-        >
+        <p>Search Google Maps businesses → Send bulk SMS via Ooma</p>
       </div>
 
       <div class="search-card">
@@ -610,25 +879,35 @@
       </div>
 
       <div id="errorMsg" class="error-state" style="display: none"></div>
-      <div id="demoNotice" class="demo-notice" style="display: none">
-        Showing demo data — enter a real SerpApi key and hit Search for live
-        results.
-      </div>
 
       <div class="status-bar" id="statusBar" style="display: none">
         <div class="result-count" id="resultCount"></div>
-        <button class="export-btn" onclick="exportCSV()">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <path
-              d="M7 1v8M4 6l3 3 3-3M2 10v2a1 1 0 001 1h8a1 1 0 001-1v-2"
-              stroke="currentColor"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
-          Export CSV
-        </button>
+        <div class="action-buttons">
+          <button class="export-btn" onclick="exportCSV()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path
+                d="M7 1v8M4 6l3 3 3-3M2 10v2a1 1 0 001 1h8a1 1 0 001-1v-2"
+                stroke="currentColor"
+                stroke-width="1.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Export CSV
+          </button>
+          <button class="sms-btn" onclick="openSMSModal()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            Send via Ooma (<span id="smsCount">0</span>)
+          </button>
+        </div>
       </div>
 
       <div id="loadingState" class="loading-state" style="display: none">
@@ -636,31 +915,109 @@
         <p>Searching Google Maps…</p>
       </div>
 
-      <div id="emptyState" class="empty-state" style="display: none">
+      <div id="emptyState" class="empty-state">
         <div class="empty-icon">🔍</div>
         <h3>Ready to search</h3>
-        <p>
-          Enter a service type and location above, then hit Search. Or try the
-          Demo to see how it works.
-        </p>
+        <p>Enter a service type and location above, then hit Search.</p>
       </div>
 
       <div class="results-grid" id="resultsGrid"></div>
     </main>
 
+    <!-- Ooma SMS Modal -->
+    <div class="modal-overlay" id="smsModal">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">📞 Send via Ooma</div>
+          <button class="modal-close" onclick="closeSMSModal()">&times;</button>
+        </div>
+
+        <div class="info-box">
+          💡 Your Ooma number: <strong>(330) 443-7800</strong> — Messages will
+          be sent from this number
+        </div>
+
+        <div class="send-options">
+          <div
+            class="send-option selected"
+            onclick="selectSendOption('portal', this)"
+          >
+            <div class="icon">🌐</div>
+            <div class="name">Ooma Web Portal</div>
+            <div class="desc">Opens Ooma website (Recommended)</div>
+          </div>
+          <div class="send-option" onclick="selectSendOption('app', this)">
+            <div class="icon">📱</div>
+            <div class="name">Ooma Desktop App</div>
+            <div class="desc">Opens installed app</div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label
+            >Selected Recipients (<span id="recipientCount">0</span>
+            businesses)</label
+          >
+          <div class="phone-list" id="phoneList"></div>
+        </div>
+
+        <div class="field">
+          <label>Your Message</label>
+          <textarea
+            id="smsMessage"
+            placeholder="Hi! I'm looking for plumbing services. Please call me back at (330) 443-7800 when available. Thanks!"
+          ></textarea>
+          <div class="char-count" id="charCount">0 / 160 characters</div>
+        </div>
+
+        <div class="quick-actions">
+          <span style="color: var(--muted); font-size: 12px">Templates:</span>
+          <button class="quick-action" onclick="setTemplate('quote')">
+            Request Quote
+          </button>
+          <button class="quick-action" onclick="setTemplate('callback')">
+            Call Back
+          </button>
+          <button class="quick-action" onclick="setTemplate('emergency')">
+            Emergency
+          </button>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeSMSModal()">Cancel</button>
+          <button class="btn-ooma" onclick="sendViaOoma()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path
+                d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span id="sendBtnText">Open Ooma Portal</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+      <span id="toastIcon">✓</span>
+      <span id="toastMessage">Message sent!</span>
+    </div>
+
     <script>
-      // ============================================
-      // 🔧 CONFIGURATION - Change this for deployment
-      // ============================================
-      // For LOCAL development: "http://127.0.0.1:5000"
-      // For RENDER deployment: "https://your-app-name.onrender.com"
-      const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-        ? "http://127.0.0.1:5000"
-        : "";  // Empty string = same domain (for deployed frontend with backend)
-      // ============================================
+      const API_BASE_URL =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1"
+          ? "http://127.0.0.1:5000"
+          : "";
 
       let allResults = [];
       let currentFilter = "all";
+      let selectedBusinesses = new Set();
+      let sendOption = "portal";
 
       const DEMO_DATA = [
         {
@@ -669,11 +1026,9 @@
           rating: 4.8,
           reviews: 124,
           phone: "(205) 678-4521",
-          address: "112 Main St, Chelsea, AL 35043",
+          address: "112 Main St, Chelsea, AL",
           hours: "Open · Closes 6 PM",
           open: true,
-          website: "https://example.com",
-          maps: "https://maps.google.com",
         },
         {
           title: "Alabama Pro Plumbers",
@@ -681,11 +1036,9 @@
           rating: 4.5,
           reviews: 89,
           phone: "(205) 555-0190",
-          address: "45 Oak Ave, Chelsea, AL 35043",
+          address: "45 Oak Ave, Chelsea, AL",
           hours: "Open 24 hours",
           open: true,
-          website: "https://example.com",
-          maps: "https://maps.google.com",
         },
         {
           title: "Shelby County Drain Experts",
@@ -696,8 +1049,6 @@
           address: "789 Highway 280, Chelsea, AL",
           hours: "Closed · Opens 8 AM",
           open: false,
-          website: null,
-          maps: "https://maps.google.com",
         },
         {
           title: "FastFlow Plumbing LLC",
@@ -705,11 +1056,9 @@
           rating: 4.9,
           reviews: 211,
           phone: "(205) 320-7741",
-          address: "33 Ridgeway Dr, Chelsea, AL 35043",
+          address: "33 Ridgeway Dr, Chelsea, AL",
           hours: "Open · Closes 5 PM",
           open: true,
-          website: "https://example.com",
-          maps: "https://maps.google.com",
         },
         {
           title: "Affordable Pipe & Fix",
@@ -720,8 +1069,6 @@
           address: "901 Cahaba Valley Rd, Chelsea, AL",
           hours: "Closed · Opens Mon 7 AM",
           open: false,
-          website: null,
-          maps: "https://maps.google.com",
         },
         {
           title: "Premier Home Services",
@@ -729,13 +1076,20 @@
           rating: 4.6,
           reviews: 178,
           phone: "(205) 819-3300",
-          address: "200 Commerce Dr, Chelsea, AL 35043",
+          address: "200 Commerce Dr, Chelsea, AL",
           hours: "Open · Closes 7 PM",
           open: true,
-          website: "https://example.com",
-          maps: "https://maps.google.com",
         },
       ];
+
+      const TEMPLATES = {
+        quote:
+          "Hi! I'm looking for [SERVICE] services at my property. Could you please provide a quote? You can reach me at (330) 443-7800. Thanks!",
+        callback:
+          "Hello! I found your business online and I'm interested in your services. Please call me back at (330) 443-7800 when you have a moment. Thank you!",
+        emergency:
+          "URGENT: I need immediate assistance with [ISSUE]. Please call (330) 443-7800 ASAP. Thank you!",
+      };
 
       function getEmoji(type) {
         const t = (type || "").toLowerCase();
@@ -746,7 +1100,6 @@
         if (t.includes("drain") || t.includes("sewer")) return "🚿";
         if (t.includes("paint")) return "🎨";
         if (t.includes("landscape") || t.includes("lawn")) return "🌿";
-        if (t.includes("clean")) return "🧹";
         return "🔩";
       }
 
@@ -759,7 +1112,7 @@
         );
       }
 
-      function renderCard(biz) {
+      function renderCard(biz, index) {
         const open =
           biz.open_state?.value === "Open" ||
           biz.hours?.toLowerCase().includes("open") ||
@@ -771,58 +1124,61 @@
           biz.maps || biz.place_id
             ? `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
             : "#";
+        const isSelected = selectedBusinesses.has(index);
 
         return `
-  <div class="biz-card">
-    <div class="biz-header">
-      <div class="biz-icon">${getEmoji(biz.type || biz.title)}</div>
-      <div>
-        <div class="biz-name">${biz.title || "Business"}</div>
-        <div class="biz-category">${biz.type || "Local Service"}</div>
-      </div>
-    </div>
-
-    ${
-      biz.rating
-        ? `
-    <div class="rating-row">
-      <span class="stars">${starsHtml(biz.rating)}</span>
-      <span class="rating-val">${biz.rating}</span>
-      <span class="review-count">(${biz.reviews || 0} reviews)</span>
-    </div>`
-        : ""
-    }
-
-    <div class="info-list">
-      ${address ? `<div class="info-item"><span class="icon">📍</span><span class="val">${address}</span></div>` : ""}
-      ${phone ? `<div class="info-item"><span class="icon">📞</span><span class="val">${phone}</span></div>` : '<div class="info-item"><span class="icon">📞</span><span>No phone listed</span></div>'}
-      ${
-        biz.hours
-          ? `
-      <div class="info-item">
-        <span class="icon">🕐</span>
-        <span>
-          <span class="status-badge ${open ? "badge-open" : "badge-closed"}">${open ? "● Open" : "● Closed"}</span>
-          &nbsp;${biz.hours.replace(/^(Open|Closed)[^·]*·\s*/i, "")}
-        </span>
-      </div>`
-          : ""
+        <div class="biz-card ${isSelected ? "selected" : ""}" data-index="${index}">
+          <div class="biz-header">
+            <input type="checkbox" class="biz-checkbox" ${isSelected ? "checked" : ""} onchange="toggleBusiness(${index}, this.checked)" />
+            <div class="biz-icon">${getEmoji(biz.type || biz.title)}</div>
+            <div>
+              <div class="biz-name">${biz.title || "Business"}</div>
+              <div class="biz-category">${biz.type || "Local Service"}</div>
+            </div>
+          </div>
+          ${
+            biz.rating
+              ? `
+            <div class="rating-row">
+              <span class="stars">${starsHtml(biz.rating)}</span>
+              <span class="rating-val">${biz.rating}</span>
+              <span class="review-count">(${biz.reviews || 0} reviews)</span>
+            </div>`
+              : ""
+          }
+          <div class="info-list">
+            ${address ? `<div class="info-item"><span class="icon">📍</span><span class="val">${address}</span></div>` : ""}
+            ${phone ? `<div class="info-item"><span class="icon">📞</span><span class="val">${phone}</span></div>` : '<div class="info-item"><span class="icon">📞</span><span>No phone listed</span></div>'}
+            ${biz.hours ? `<div class="info-item"><span class="icon">🕐</span><span><span class="status-badge ${open ? "badge-open" : "badge-closed"}">${open ? "● Open" : "● Closed"}</span> &nbsp;${biz.hours.replace(/^(Open|Closed)[^·]*·\s*/i, "")}</span></div>` : ""}
+          </div>
+          <div class="card-actions">
+            ${phone ? `<a href="tel:${phone}" class="action-btn primary">Call Now</a>` : '<span class="action-btn" style="opacity:.4;cursor:default">No Phone</span>'}
+            <a href="${mapsLink}" target="_blank" class="action-btn">View on Maps</a>
+            ${website ? `<a href="${website}" target="_blank" class="action-btn" style="grid-column:span 2">Visit Website</a>` : ""}
+          </div>
+        </div>`;
       }
-    </div>
 
-    <div class="card-actions">
-      ${phone ? `<a href="tel:${phone}" class="action-btn primary">Call Now</a>` : '<span class="action-btn" style="opacity:.4;cursor:default">No Phone</span>'}
-      <a href="${mapsLink}" target="_blank" class="action-btn">View on Maps</a>
-      ${website ? `<a href="${website}" target="_blank" class="action-btn" style="grid-column:span 2">Visit Website</a>` : ""}
-    </div>
-  </div>`;
+      function toggleBusiness(index, checked) {
+        if (checked) selectedBusinesses.add(index);
+        else selectedBusinesses.delete(index);
+        updateSMSCount();
+        const card = document.querySelector(`.biz-card[data-index="${index}"]`);
+        if (card) card.classList.toggle("selected", checked);
+      }
+
+      function updateSMSCount() {
+        document.getElementById("smsCount").textContent =
+          selectedBusinesses.size;
       }
 
       function showResults(data) {
         allResults = data;
+        selectedBusinesses.clear();
         document.getElementById("filterRow").style.display = "flex";
         document.getElementById("statusBar").style.display = "flex";
         document.getElementById("emptyState").style.display = "none";
+        updateSMSCount();
         applyFilter(currentFilter);
       }
 
@@ -839,10 +1195,13 @@
           filtered = allResults.filter((b) => (b.rating || 0) >= 4);
         if (f === "phone")
           filtered = allResults.filter((b) => b.phone || b.extracted_phone);
+
         document.getElementById("resultCount").innerHTML =
           `<strong>${filtered.length}</strong> result${filtered.length !== 1 ? "s" : ""} found`;
         document.getElementById("resultsGrid").innerHTML = filtered.length
-          ? filtered.map(renderCard).join("")
+          ? filtered
+              .map((biz, i) => renderCard(biz, allResults.indexOf(biz)))
+              .join("")
           : '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px">No results match this filter.</p>';
       }
 
@@ -857,22 +1216,18 @@
 
       function loadDemo() {
         document.getElementById("errorMsg").style.display = "none";
-        document.getElementById("demoNotice").style.display = "block";
         showResults(DEMO_DATA);
       }
 
       async function doSearch() {
         const query = document.getElementById("query").value.trim();
         const location = document.getElementById("location").value.trim();
-
         if (!query || !location) {
           showError("Please enter both Service Type and Location.");
           return;
         }
 
-        // Show loading
         document.getElementById("errorMsg").style.display = "none";
-        document.getElementById("demoNotice").style.display = "none";
         document.getElementById("loadingState").style.display = "block";
         document.getElementById("resultsGrid").innerHTML = "";
         document.getElementById("statusBar").style.display = "none";
@@ -881,36 +1236,26 @@
 
         try {
           const params = new URLSearchParams({ q: query, location: location });
-          const apiUrl = API_BASE_URL ? `${API_BASE_URL}/search?${params}` : `/search?${params}`;
-
+          const apiUrl = API_BASE_URL
+            ? `${API_BASE_URL}/search?${params}`
+            : `/search?${params}`;
           const response = await fetch(apiUrl);
-
-          if (!response.ok) {
+          if (!response.ok)
             throw new Error(`Server returned ${response.status}`);
-          }
-
           const data = await response.json();
-
           if (data.error) {
-            showError(`Error from server: ${data.error}`);
+            showError(`Error: ${data.error}`);
             return;
           }
-
           const results = data.local_results || [];
-
           if (results.length === 0) {
             showError("No results found. Try a different location or service.");
             return;
           }
-
           showResults(results);
         } catch (err) {
           console.error(err);
-          showError(`Could not connect to backend.<br><br>
-      Please check:<br>
-      • Backend is still running (python server.py)<br>
-      • Frontend is opened at http://127.0.0.1:8000<br>
-      • Try closing and reopening both terminals`);
+          showError("Could not connect to backend. Please check your server.");
         } finally {
           document.getElementById("loadingState").style.display = "none";
           document.getElementById("searchBtn").disabled = false;
@@ -941,19 +1286,134 @@
           `"${b.type || ""}"`,
           b.rating || "",
           b.reviews || "",
-          `"${b.phone || b.extracted_phone || ""}"`,
+          `"${b.phone || ""}"`,
           `"${b.address || ""}"`,
           `"${b.hours || ""}"`,
           `"${b.website || ""}"`,
         ]);
         const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
         const blob = new Blob([csv], { type: "text/csv" });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = "crewfinder-results.csv";
         a.click();
-        URL.revokeObjectURL(url);
+      }
+
+      // SMS Modal Functions
+      function openSMSModal() {
+        if (selectedBusinesses.size === 0) {
+          showToast("Please select at least one business", "error");
+          return;
+        }
+        populatePhoneList();
+        updateCharCount();
+        document.getElementById("smsModal").classList.add("active");
+      }
+
+      function closeSMSModal() {
+        document.getElementById("smsModal").classList.remove("active");
+      }
+
+      function selectSendOption(option, el) {
+        sendOption = option;
+        document
+          .querySelectorAll(".send-option")
+          .forEach((o) => o.classList.remove("selected"));
+        el.classList.add("selected");
+        document.getElementById("sendBtnText").textContent =
+          option === "portal" ? "Open Ooma Portal" : "Open Ooma App";
+      }
+
+      function populatePhoneList() {
+        const phoneList = document.getElementById("phoneList");
+        const selectedArray = Array.from(selectedBusinesses);
+        document.getElementById("recipientCount").textContent =
+          selectedArray.length;
+
+        phoneList.innerHTML = selectedArray
+          .map((index) => {
+            const biz = allResults[index];
+            const phone = biz.phone || biz.extracted_phone;
+            return `
+          <div class="phone-item">
+            <input type="checkbox" checked data-index="${index}" data-phone="${phone || ""}" />
+            <span class="biz-name">${biz.title || "Unknown"}</span>
+            <span class="phone-num">${phone || "No phone"}</span>
+          </div>`;
+          })
+          .join("");
+      }
+
+      function setTemplate(type) {
+        document.getElementById("smsMessage").value = TEMPLATES[type] || "";
+        updateCharCount();
+      }
+
+      function updateCharCount() {
+        const msg = document.getElementById("smsMessage").value;
+        const count = msg.length;
+        const counter = document.getElementById("charCount");
+        counter.textContent = `${count} / 160 characters`;
+        counter.classList.remove("warning", "danger");
+        if (count > 160) counter.classList.add("danger");
+        else if (count > 140) counter.classList.add("warning");
+      }
+
+      function sendViaOoma() {
+        const message = document.getElementById("smsMessage").value.trim();
+        if (!message) {
+          showToast("Please enter a message", "error");
+          return;
+        }
+
+        const checkboxes = document.querySelectorAll(
+          '#phoneList input[type="checkbox"]:checked',
+        );
+        const phones = [];
+        checkboxes.forEach((cb) => {
+          const phone = cb.dataset.phone;
+          if (phone)
+            phones.push({ phone, name: allResults[cb.dataset.index]?.title });
+        });
+
+        if (phones.length === 0) {
+          showToast("No valid phone numbers selected", "error");
+          return;
+        }
+
+        // Copy message to clipboard
+        navigator.clipboard
+          .writeText(message)
+          .then(() => {
+            if (sendOption === "portal") {
+              // Open Ooma Web Portal
+              window.open("https://office.ooma.com/app/dialer", "_blank");
+
+              // Show phone numbers in toast
+              showToast(
+                `✅ Message copied! 📱 ${phones.length} numbers ready.`,
+                "success",
+              );
+            } else {
+              // Try to open Ooma desktop app
+              const firstPhone = phones[0].phone.replace(/\D/g, "");
+              window.location.href = `ooma://sms?to=+1${firstPhone}&body=${encodeURIComponent(message)}`;
+              showToast(`Opening Ooma app...`, "success");
+            }
+            closeSMSModal();
+          })
+          .catch(() => {
+            showToast("Failed to copy message", "error");
+          });
+      }
+
+      function showToast(msg, type = "success") {
+        const toast = document.getElementById("toast");
+        document.getElementById("toastIcon").textContent =
+          type === "success" ? "✓" : "✕";
+        document.getElementById("toastMessage").textContent = msg;
+        toast.className = `toast ${type} show`;
+        setTimeout(() => toast.classList.remove("show"), 4000);
       }
 
       document.getElementById("query").addEventListener("keydown", (e) => {
@@ -962,8 +1422,9 @@
       document.getElementById("location").addEventListener("keydown", (e) => {
         if (e.key === "Enter") doSearch();
       });
-
-      document.getElementById("emptyState").style.display = "block";
+      document
+        .getElementById("smsMessage")
+        .addEventListener("input", updateCharCount);
     </script>
   </body>
 </html>
