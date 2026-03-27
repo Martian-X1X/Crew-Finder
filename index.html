@@ -1,14 +1,11 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CrewFinder — Local Business Search</title>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
-      rel="stylesheet"
-    />
-    <style>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CrewFinder — Local Business Search</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
       :root {
         --bg: #0d0d0f;
         --surface: #17171a;
@@ -582,11 +579,6 @@
             Try Demo
           </button>
         </div>
-        <input
-          type="hidden"
-          id="apiKey"
-          value="cdd347a25101d3845335e181f736843926ded257931aad7a59af91cc38e4ee70"
-        />
 
         <div class="filters-row" id="filterRow" style="display: none">
           <span
@@ -657,6 +649,16 @@
     </main>
 
     <script>
+      // ============================================
+      // 🔧 CONFIGURATION - Change this for deployment
+      // ============================================
+      // For LOCAL development: "http://127.0.0.1:5000"
+      // For RENDER deployment: "https://your-app-name.onrender.com"
+      const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+        ? "http://127.0.0.1:5000"
+        : "";  // Empty string = same domain (for deployed frontend with backend)
+      // ============================================
+
       let allResults = [];
       let currentFilter = "all";
 
@@ -879,10 +881,9 @@
 
         try {
           const params = new URLSearchParams({ q: query, location: location });
+          const apiUrl = API_BASE_URL ? `${API_BASE_URL}/search?${params}` : `/search?${params}`;
 
-          const response = await fetch(
-            `http://127.0.0.1:5000/search?${params}`,
-          );
+          const response = await fetch(apiUrl);
 
           if (!response.ok) {
             throw new Error(`Server returned ${response.status}`);
@@ -919,7 +920,7 @@
       function showError(msg) {
         document.getElementById("loadingState").style.display = "none";
         const el = document.getElementById("errorMsg");
-        el.textContent = msg;
+        el.innerHTML = msg;
         el.style.display = "block";
       }
 

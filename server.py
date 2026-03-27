@@ -1,13 +1,24 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 import requests
 from flask_cors import CORS
+import os
 
 app = Flask(__name__)
 CORS(app)
 
-# Your SerpApi Key
-API_KEY = "cdd347a25101d3845335e181f736843926ded257931aad7a59af91cc38e4ee70"
+# Read API Key from environment variable
+API_KEY = os.environ.get("SERPAPI_KEY")
 
+# Serve the frontend
+@app.route('/')
+def serve_index():
+    return send_from_directory('.', 'index.html')
+
+@app.route('/<path:path>')
+def serve_static(path):
+    return send_from_directory('.', path)
+
+# API endpoint for search
 @app.route('/search', methods=['GET'])
 def search_google_maps():
     query = request.args.get('q')
@@ -15,6 +26,9 @@ def search_google_maps():
 
     if not query:
         return jsonify({"error": "Missing query parameter"}), 400
+
+    if not API_KEY:
+        return jsonify({"error": "SERPAPI_KEY environment variable not set"}), 500
 
     search_query = f"{query} {location}".strip()
 
@@ -41,8 +55,6 @@ def search_google_maps():
         return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
-# For local development
 if __name__ == '__main__':
-    print("🚀 CrewFinder Backend is running!")
-    print("→ Local: http://127.0.0.1:5000")
+    print("🚀 CrewFinder is running!")
     app.run(host='0.0.0.0', port=5000, debug=True)
