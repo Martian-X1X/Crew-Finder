@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CrewFinder — Local Business Search</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #0d0d0f;
+        --surface: #17171a;
+        --surface2: #1f1f23;
+        --border: rgba(255, 255, 255, 0.07);
+        --border2: rgba(255, 255, 255, 0.13);
+        --accent: #e8ff47;
+        --accent2: #47ffe8;
+        --text: #f0f0f0;
+        --muted: #888;
+        --muted2: #555;
+        --radius: 12px;
+        --radius-lg: 18px;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: "DM Sans", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+
+      header {
+        padding: 28px 40px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: 1px solid var(--border);
+      }
+      .logo-mark {
+        width: 36px;
+        height: 36px;
+        background: var(--accent);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .logo-mark svg {
+        width: 20px;
+        height: 20px;
+      }
+      .logo-text {
+        font-family: "Syne", sans-serif;
+        font-size: 20px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .logo-text span {
+        color: var(--accent);
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 48px 24px;
+      }
+
+      .hero {
+        text-align: center;
+        margin-bottom: 52px;
+      }
+      .hero h1 {
+        font-family: "Syne", sans-serif;
+        font-size: clamp(32px, 5vw, 56px);
+        font-weight: 700;
+        letter-spacing: -1.5px;
+        line-height: 1.1;
+        margin-bottom: 14px;
+      }
+      .hero h1 em {
+        color: var(--accent);
+        font-style: normal;
+      }
+      .hero p {
+        color: var(--muted);
+        font-size: 17px;
+        font-weight: 300;
+      }
+
+      .api-banner {
+        background: rgba(232, 255, 71, 0.06);
+        border: 1px solid rgba(232, 255, 71, 0.2);
+        border-radius: var(--radius);
+        padding: 14px 18px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 32px;
+        font-size: 14px;
+      }
+      .api-banner .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+      }
+      .api-banner a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      .api-banner a:hover {
+        text-decoration: underline;
+      }
+
+      .search-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 32px;
+        margin-bottom: 40px;
+      }
+
+      .field-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 14px;
+        align-items: end;
+        margin-bottom: 18px;
+      }
+      @media (max-width: 640px) {
+        .field-row {
+          grid-template-columns: 1fr;
+        }
+        header {
+          padding: 20px;
+        }
+        main {
+          padding: 28px 16px;
+        }
+      }
+
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+      }
+      .field label {
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.6px;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      .field input,
+      .field select {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: var(--radius);
+        padding: 12px 16px;
+        font-family: "DM Sans", sans-serif;
+        font-size: 15px;
+        color: var(--text);
+        outline: none;
+        transition: border-color 0.15s;
+        width: 100%;
+      }
+      .field input:focus,
+      .field select:focus {
+        border-color: var(--accent);
+      }
+      .field input::placeholder {
+        color: var(--muted2);
+      }
+      .field select option {
+        background: #1f1f23;
+      }
+
+      .btn-search {
+        background: var(--accent);
+        color: #0d0d0f;
+        border: none;
+        border-radius: var(--radius);
+        padding: 13px 28px;
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        transition:
+          opacity 0.15s,
+          transform 0.1s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn-search:hover {
+        opacity: 0.88;
+      }
+      .btn-search:active {
+        transform: scale(0.97);
+      }
+      .btn-search:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+
+      .filters-row {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        padding-top: 18px;
+        border-top: 1px solid var(--border);
+      }
+      .filter-chip {
+        background: transparent;
+        border: 1px solid var(--border2);
+        border-radius: 100px;
+        padding: 6px 14px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.15s;
+        font-family: "DM Sans", sans-serif;
+      }
+      .filter-chip:hover,
+      .filter-chip.active {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: rgba(232, 255, 71, 0.07);
+      }
+
+      .status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        min-height: 28px;
+      }
+      .result-count {
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .result-count strong {
+        color: var(--text);
+      }
+
+      .export-btn {
+        background: transparent;
+        border: 1px solid var(--border2);
+        border-radius: var(--radius);
+        padding: 7px 16px;
+        font-size: 13px;
+        color: var(--muted);
+        cursor: pointer;
+        font-family: "DM Sans", sans-serif;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .export-btn:hover {
+        border-color: var(--accent2);
+        color: var(--accent2);
+      }
+
+      .results-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 16px;
+      }
+
+      .biz-card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 22px;
+        transition:
+          border-color 0.2s,
+          transform 0.15s;
+        position: relative;
+        overflow: hidden;
+      }
+      .biz-card:hover {
+        border-color: var(--border2);
+        transform: translateY(-2px);
+      }
+      .biz-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent2));
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .biz-card:hover::before {
+        opacity: 1;
+      }
+
+      .biz-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+      .biz-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        flex-shrink: 0;
+      }
+      .biz-name {
+        font-family: "Syne", sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.3;
+        margin-bottom: 4px;
+      }
+      .biz-category {
+        font-size: 12px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .rating-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+      }
+      .stars {
+        color: #f5a623;
+        font-size: 13px;
+        letter-spacing: 1px;
+      }
+      .rating-val {
+        font-size: 14px;
+        font-weight: 500;
+      }
+      .review-count {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .info-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+      .info-item .icon {
+        font-size: 14px;
+        flex-shrink: 0;
+        margin-top: 1px;
+      }
+      .info-item .val {
+        color: var(--text);
+      }
+
+      .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 12px;
+        padding: 3px 10px;
+        border-radius: 100px;
+        font-weight: 500;
+      }
+      .badge-open {
+        background: rgba(71, 255, 232, 0.1);
+        color: var(--accent2);
+        border: 1px solid rgba(71, 255, 232, 0.2);
+      }
+      .badge-closed {
+        background: rgba(255, 90, 90, 0.1);
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 90, 90, 0.2);
+      }
+
+      .card-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        border-top: 1px solid var(--border);
+        padding-top: 14px;
+      }
+      .action-btn {
+        background: var(--surface2);
+        border: 1px solid var(--border2);
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.15s;
+        font-family: "DM Sans", sans-serif;
+        text-decoration: none;
+        display: block;
+      }
+      .action-btn:hover {
+        color: var(--text);
+        border-color: var(--text);
+      }
+      .action-btn.primary {
+        color: var(--accent);
+        border-color: rgba(232, 255, 71, 0.3);
+      }
+      .action-btn.primary:hover {
+        background: rgba(232, 255, 71, 0.08);
+      }
+
+      .loading-state {
+        text-align: center;
+        padding: 60px 20px;
+      }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--border2);
+        border-top-color: var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 20px;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-state p {
+        color: var(--muted);
+        font-size: 15px;
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        border: 1px dashed var(--border2);
+        border-radius: var(--radius-lg);
+      }
+      .empty-icon {
+        font-size: 40px;
+        margin-bottom: 16px;
+      }
+      .empty-state h3 {
+        font-family: "Syne", sans-serif;
+        font-size: 18px;
+        margin-bottom: 8px;
+      }
+      .empty-state p {
+        color: var(--muted);
+        font-size: 14px;
+        max-width: 360px;
+        margin: 0 auto;
+      }
+
+      .error-state {
+        background: rgba(255, 90, 90, 0.07);
+        border: 1px solid rgba(255, 90, 90, 0.2);
+        border-radius: var(--radius);
+        padding: 16px 20px;
+        color: #ff8080;
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+
+      .demo-notice {
+        background: rgba(71, 255, 232, 0.05);
+        border: 1px solid rgba(71, 255, 232, 0.15);
+        border-radius: var(--radius);
+        padding: 12px 16px;
+        font-size: 13px;
+        color: var(--accent2);
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="logo-mark">
+        <svg viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="4" fill="#0d0d0f" />
+          <path
+            d="M10 2v3M10 15v3M2 10h3M15 10h3"
+            stroke="#0d0d0f"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+      </div>
+      <div class="logo-text">Crew<span>Finder</span></div>
+    </header>
+
+    <main>
+      <div class="hero">
+        <h1>Find local <em>crews</em><br />in any area</h1>
+        <p>
+          Search Google Maps business data via SerpApi — phone, address, hours &
+          more.
+        </p>
+      </div>
+
+      <div class="api-banner">
+        <div class="dot"></div>
+        <span
+          >Powered by SerpApi. Get your free API key at
+          <a href="https://serpapi.com" target="_blank">serpapi.com</a> (100
+          free searches/month, no credit card).</span
+        >
+      </div>
+
+      <div class="search-card">
+        <div class="field-row">
+          <div class="field">
+            <label>Service Type</label>
+            <input
+              type="text"
+              id="query"
+              placeholder="e.g. Plumbers, Electricians, Roofers…"
+            />
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <input type="text" id="location" placeholder="e.g. Chelsea, AL" />
+          </div>
+          <button class="btn-search" onclick="doSearch()" id="searchBtn">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <circle
+                cx="6.5"
+                cy="6.5"
+                r="4.5"
+                stroke="#0d0d0f"
+                stroke-width="1.8"
+              />
+              <path
+                d="M10.5 10.5L14 14"
+                stroke="#0d0d0f"
+                stroke-width="1.8"
+                stroke-linecap="round"
+              />
+            </svg>
+            Search
+          </button>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end">
+          <button
+            class="btn-search"
+            onclick="loadDemo()"
+            style="
+              background: var(--surface2);
+              color: var(--text);
+              border: 1px solid var(--border2);
+            "
+          >
+            Try Demo
+          </button>
+        </div>
+        <input
+          type="hidden"
+          id="apiKey"
+          value="cdd347a25101d3845335e181f736843926ded257931aad7a59af91cc38e4ee70"
+        />
+
+        <div class="filters-row" id="filterRow" style="display: none">
+          <span
+            style="
+              font-size: 12px;
+              color: var(--muted);
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+              align-self: center;
+            "
+            >Filter:</span
+          >
+          <button
+            class="filter-chip active"
+            onclick="filterResults('all', this)"
+          >
+            All
+          </button>
+          <button class="filter-chip" onclick="filterResults('open', this)">
+            Open Now
+          </button>
+          <button class="filter-chip" onclick="filterResults('rated', this)">
+            4+ Stars
+          </button>
+          <button class="filter-chip" onclick="filterResults('phone', this)">
+            Has Phone
+          </button>
+        </div>
+      </div>
+
+      <div id="errorMsg" class="error-state" style="display: none"></div>
+      <div id="demoNotice" class="demo-notice" style="display: none">
+        Showing demo data — enter a real SerpApi key and hit Search for live
+        results.
+      </div>
+
+      <div class="status-bar" id="statusBar" style="display: none">
+        <div class="result-count" id="resultCount"></div>
+        <button class="export-btn" onclick="exportCSV()">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path
+              d="M7 1v8M4 6l3 3 3-3M2 10v2a1 1 0 001 1h8a1 1 0 001-1v-2"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+          Export CSV
+        </button>
+      </div>
+
+      <div id="loadingState" class="loading-state" style="display: none">
+        <div class="spinner"></div>
+        <p>Searching Google Maps…</p>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none">
+        <div class="empty-icon">🔍</div>
+        <h3>Ready to search</h3>
+        <p>
+          Enter a service type and location above, then hit Search. Or try the
+          Demo to see how it works.
+        </p>
+      </div>
+
+      <div class="results-grid" id="resultsGrid"></div>
+    </main>
+
+    <script>
+      let allResults = [];
+      let currentFilter = "all";
+
+      const DEMO_DATA = [
+        {
+          title: "Chelsea Plumbing Co.",
+          type: "Plumber",
+          rating: 4.8,
+          reviews: 124,
+          phone: "(205) 678-4521",
+          address: "112 Main St, Chelsea, AL 35043",
+          hours: "Open · Closes 6 PM",
+          open: true,
+          website: "https://example.com",
+          maps: "https://maps.google.com",
+        },
+        {
+          title: "Alabama Pro Plumbers",
+          type: "Plumber",
+          rating: 4.5,
+          reviews: 89,
+          phone: "(205) 555-0190",
+          address: "45 Oak Ave, Chelsea, AL 35043",
+          hours: "Open 24 hours",
+          open: true,
+          website: "https://example.com",
+          maps: "https://maps.google.com",
+        },
+        {
+          title: "Shelby County Drain Experts",
+          type: "Drain Cleaning",
+          rating: 4.2,
+          reviews: 56,
+          phone: "(205) 444-8823",
+          address: "789 Highway 280, Chelsea, AL",
+          hours: "Closed · Opens 8 AM",
+          open: false,
+          website: null,
+          maps: "https://maps.google.com",
+        },
+        {
+          title: "FastFlow Plumbing LLC",
+          type: "Plumber",
+          rating: 4.9,
+          reviews: 211,
+          phone: "(205) 320-7741",
+          address: "33 Ridgeway Dr, Chelsea, AL 35043",
+          hours: "Open · Closes 5 PM",
+          open: true,
+          website: "https://example.com",
+          maps: "https://maps.google.com",
+        },
+        {
+          title: "Affordable Pipe & Fix",
+          type: "Plumber",
+          rating: 3.9,
+          reviews: 31,
+          phone: null,
+          address: "901 Cahaba Valley Rd, Chelsea, AL",
+          hours: "Closed · Opens Mon 7 AM",
+          open: false,
+          website: null,
+          maps: "https://maps.google.com",
+        },
+        {
+          title: "Premier Home Services",
+          type: "Plumber / HVAC",
+          rating: 4.6,
+          reviews: 178,
+          phone: "(205) 819-3300",
+          address: "200 Commerce Dr, Chelsea, AL 35043",
+          hours: "Open · Closes 7 PM",
+          open: true,
+          website: "https://example.com",
+          maps: "https://maps.google.com",
+        },
+      ];
+
+      function getEmoji(type) {
+        const t = (type || "").toLowerCase();
+        if (t.includes("plumb")) return "🔧";
+        if (t.includes("electr")) return "⚡";
+        if (t.includes("roof")) return "🏠";
+        if (t.includes("hvac") || t.includes("air")) return "❄️";
+        if (t.includes("drain") || t.includes("sewer")) return "🚿";
+        if (t.includes("paint")) return "🎨";
+        if (t.includes("landscape") || t.includes("lawn")) return "🌿";
+        if (t.includes("clean")) return "🧹";
+        return "🔩";
+      }
+
+      function starsHtml(rating) {
+        if (!rating) return "";
+        const full = Math.floor(rating);
+        const half = rating - full >= 0.5 ? 1 : 0;
+        return (
+          "★".repeat(full) + (half ? "½" : "") + "☆".repeat(5 - full - half)
+        );
+      }
+
+      function renderCard(biz) {
+        const open =
+          biz.open_state?.value === "Open" ||
+          biz.hours?.toLowerCase().includes("open") ||
+          biz.open;
+        const phone = biz.phone || biz.extracted_phone || null;
+        const address = biz.address || "";
+        const website = biz.website || null;
+        const mapsLink =
+          biz.maps || biz.place_id
+            ? `https://www.google.com/maps/place/?q=place_id:${biz.place_id}`
+            : "#";
+
+        return `
+  <div class="biz-card">
+    <div class="biz-header">
+      <div class="biz-icon">${getEmoji(biz.type || biz.title)}</div>
+      <div>
+        <div class="biz-name">${biz.title || "Business"}</div>
+        <div class="biz-category">${biz.type || "Local Service"}</div>
+      </div>
+    </div>
+
+    ${
+      biz.rating
+        ? `
+    <div class="rating-row">
+      <span class="stars">${starsHtml(biz.rating)}</span>
+      <span class="rating-val">${biz.rating}</span>
+      <span class="review-count">(${biz.reviews || 0} reviews)</span>
+    </div>`
+        : ""
+    }
+
+    <div class="info-list">
+      ${address ? `<div class="info-item"><span class="icon">📍</span><span class="val">${address}</span></div>` : ""}
+      ${phone ? `<div class="info-item"><span class="icon">📞</span><span class="val">${phone}</span></div>` : '<div class="info-item"><span class="icon">📞</span><span>No phone listed</span></div>'}
+      ${
+        biz.hours
+          ? `
+      <div class="info-item">
+        <span class="icon">🕐</span>
+        <span>
+          <span class="status-badge ${open ? "badge-open" : "badge-closed"}">${open ? "● Open" : "● Closed"}</span>
+          &nbsp;${biz.hours.replace(/^(Open|Closed)[^·]*·\s*/i, "")}
+        </span>
+      </div>`
+          : ""
+      }
+    </div>
+
+    <div class="card-actions">
+      ${phone ? `<a href="tel:${phone}" class="action-btn primary">Call Now</a>` : '<span class="action-btn" style="opacity:.4;cursor:default">No Phone</span>'}
+      <a href="${mapsLink}" target="_blank" class="action-btn">View on Maps</a>
+      ${website ? `<a href="${website}" target="_blank" class="action-btn" style="grid-column:span 2">Visit Website</a>` : ""}
+    </div>
+  </div>`;
+      }
+
+      function showResults(data) {
+        allResults = data;
+        document.getElementById("filterRow").style.display = "flex";
+        document.getElementById("statusBar").style.display = "flex";
+        document.getElementById("emptyState").style.display = "none";
+        applyFilter(currentFilter);
+      }
+
+      function applyFilter(f) {
+        let filtered = allResults;
+        if (f === "open")
+          filtered = allResults.filter(
+            (b) =>
+              b.open ||
+              (b.hours || "").toLowerCase().includes("open") ||
+              b.open_state?.value === "Open",
+          );
+        if (f === "rated")
+          filtered = allResults.filter((b) => (b.rating || 0) >= 4);
+        if (f === "phone")
+          filtered = allResults.filter((b) => b.phone || b.extracted_phone);
+        document.getElementById("resultCount").innerHTML =
+          `<strong>${filtered.length}</strong> result${filtered.length !== 1 ? "s" : ""} found`;
+        document.getElementById("resultsGrid").innerHTML = filtered.length
+          ? filtered.map(renderCard).join("")
+          : '<p style="color:var(--muted);grid-column:1/-1;text-align:center;padding:40px">No results match this filter.</p>';
+      }
+
+      function filterResults(f, el) {
+        currentFilter = f;
+        document
+          .querySelectorAll(".filter-chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        applyFilter(f);
+      }
+
+      function loadDemo() {
+        document.getElementById("errorMsg").style.display = "none";
+        document.getElementById("demoNotice").style.display = "block";
+        showResults(DEMO_DATA);
+      }
+
+      async function doSearch() {
+        const query = document.getElementById("query").value.trim();
+        const location = document.getElementById("location").value.trim();
+
+        if (!query || !location) {
+          showError("Please enter both Service Type and Location.");
+          return;
+        }
+
+        // Show loading
+        document.getElementById("errorMsg").style.display = "none";
+        document.getElementById("demoNotice").style.display = "none";
+        document.getElementById("loadingState").style.display = "block";
+        document.getElementById("resultsGrid").innerHTML = "";
+        document.getElementById("statusBar").style.display = "none";
+        document.getElementById("filterRow").style.display = "none";
+        document.getElementById("searchBtn").disabled = true;
+
+        try {
+          const params = new URLSearchParams({ q: query, location: location });
+
+          const response = await fetch(
+            `http://127.0.0.1:5000/search?${params}`,
+          );
+
+          if (!response.ok) {
+            throw new Error(`Server returned ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          if (data.error) {
+            showError(`Error from server: ${data.error}`);
+            return;
+          }
+
+          const results = data.local_results || [];
+
+          if (results.length === 0) {
+            showError("No results found. Try a different location or service.");
+            return;
+          }
+
+          showResults(results);
+        } catch (err) {
+          console.error(err);
+          showError(`Could not connect to backend.<br><br>
+      Please check:<br>
+      • Backend is still running (python server.py)<br>
+      • Frontend is opened at http://127.0.0.1:8000<br>
+      • Try closing and reopening both terminals`);
+        } finally {
+          document.getElementById("loadingState").style.display = "none";
+          document.getElementById("searchBtn").disabled = false;
+        }
+      }
+
+      function showError(msg) {
+        document.getElementById("loadingState").style.display = "none";
+        const el = document.getElementById("errorMsg");
+        el.textContent = msg;
+        el.style.display = "block";
+      }
+
+      function exportCSV() {
+        if (!allResults.length) return;
+        const headers = [
+          "Name",
+          "Type",
+          "Rating",
+          "Reviews",
+          "Phone",
+          "Address",
+          "Hours",
+          "Website",
+        ];
+        const rows = allResults.map((b) => [
+          `"${b.title || ""}"`,
+          `"${b.type || ""}"`,
+          b.rating || "",
+          b.reviews || "",
+          `"${b.phone || b.extracted_phone || ""}"`,
+          `"${b.address || ""}"`,
+          `"${b.hours || ""}"`,
+          `"${b.website || ""}"`,
+        ]);
+        const csv = [headers, ...rows].map((r) => r.join(",")).join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "crewfinder-results.csv";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      document.getElementById("query").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
+      document.getElementById("location").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") doSearch();
+      });
+
+      document.getElementById("emptyState").style.display = "block";
+    </script>
+  </body>
+</html>
